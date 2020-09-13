@@ -10,7 +10,11 @@ const execute = async (bot, message, args) => {
                 throw err;
             } else if (result && result.videos.length > 0) {
                     const song = result.videos[0];
-                    playSong(bot, message, song);
+                    const queue = bot.queues.get(message.guild.id);
+                    if (queue) { // Quando skipada, uma nova música é adicionada ao inicio da queue
+                        queue.songs.push(song);
+                        bot.queues.set(message.guild.id, queue);
+                    } else playSong(bot, message, song);
                     console.log(song);
             } else {
                 return message.reply("Mano não encontrei sa poha não.");
@@ -26,7 +30,7 @@ const playSong = async (bot, message, song) => {
     if (!song) {
         if (queue) {
             queue.connection.disconnect();
-            bot.queues.delete(message.member.guild.id);
+            return bot.queues.delete(message.member.guild.id); // return valor caso a queue não exista.
         }
     }
     console.log(message.member.guild);
@@ -62,4 +66,5 @@ module.exports = {
     name: "p",
     help: "Reproduz a música desejada pela user!",
     execute,
-}
+    playSong,
+};
