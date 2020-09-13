@@ -7,6 +7,7 @@ dotenv.config();
 
 const bot = new Discord.Client(); // Adicionando bot ao client do discord
 bot.commands = new Discord.Collection(); // Adicionando comandos a serem permitidos pelo bot/user
+bot.queues = new Map(); // Criando filas para adição de músicas  
 
 // Pegando arquivos que da pasta /commands, que terminam com .js
 const commandFiles = fs
