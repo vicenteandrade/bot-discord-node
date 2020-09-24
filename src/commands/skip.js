@@ -6,7 +6,7 @@ const execute = (bot, message, args) => {
     return message.reply("Não tem outra música na fila maluco!, fé com fé");
   }
   queue.songs.shift(); // Retira a primeira música da fila.
-  bot.queues.set(message.guild.id, queue); // Atualizaa fila de música
+  bot.queues.set(message.guild.id, queue); // Atualiza fila de música
   playSong(bot, message, queue.songs[0]); // Reproduz novamente, mas ja com a próxima música da fila.
 };
 
