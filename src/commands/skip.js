@@ -1,5 +1,3 @@
-const play = require("./play");
-
 const playSong = require("./play").playSong;
 
 const execute = (bot, message, args) => {
