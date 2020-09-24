@@ -1,70 +1,75 @@
 const search = require("yt-search");
 const ytdl = require("ytdl-core-discord");
 
-const execute = async (bot, message, args) => {
-    const strings = args.join(" "); // Adicionas os args em uma única string separada por espaços
-    console.log(strings);
-    try {
-        search(strings, (err, result) => {
-            if(err) {
-                throw err;
-            } else if (result && result.videos.length > 0) {
-                    const song = result.videos[0];
-                    const queue = bot.queues.get(message.guild.id);
-                    if (queue) { // Quando skipada, uma nova música é adicionada ao inicio da queue
-                        queue.songs.push(song);
-                        bot.queues.set(message.guild.id, queue);
-                    } else playSong(bot, message, song);
-                    console.log(song);
-            } else {
-                return message.reply("Mano não encontrei sa poha não.");
-            }
-        })
-    } catch(e) {
-        console.error(e);
-    }
+const execute = (bot, message, args) => {
+  // Function para busca de músicas
+  const string = args.join(" "); // Separa o arranjos e colocar ele em um texto único
+  try {
+    search(string, (err, result) => {
+      if (err) {
+        throw err;
+      } else if (result && result.videos.length > 0) {
+        const song = result.videos[0];
+        const queue = bot.queues.get(message.guild.id);
+        if (queue) {
+          // Verifica se há uma fila de música
+          queue.songs.push(song); // Adiciona uma nova música na queue
+          bot.queues.set(message.guild.id, queue); // Atualiza a fila de músicas
+        } else playSong(bot, message, song); // Caso contrátio, inicia a reprodução normalmente
+      } else {
+        return message.reply("Mano não achei essa música não...");
+      }
+    });
+  } catch (e) {
+    console.log(e);
+  }
 };
 
 const playSong = async (bot, message, song) => {
-    let queue = bot.queues.get(message.guild.id); // Verifica se ja existe uma fila
-    if (!song) {
-        if (queue) {
-            queue.connection.disconnect();
-            return bot.queues.delete(message.member.guild.id); // return valor caso a queue não exista.
-        }
+  // Function resposável por tocar as músicas
+  let queue = bot.queues.get(message.member.guild.id);
+  if (!song) {
+    if (queue) {
+      queue.connection.disconnect(); // Caso não haja mais músicas o bot é desconectado
+      return bot.queues.delete(message.member.guild.id); // É deletado a fila de músicas atual.
     }
-    console.log(message.member.guild);
-    if(!message.member.voice.channel){
-        return message.reply("Entra em um canal ai meu irmão, senão não da pra tocar música maluco!")
-    }
-    if (!queue) {
-        const conn = await message.member.voice.channel.join(); // Espera o usuário conecta no canal de voz para que o bot entre junto
-        queue = { // Resources iniciais do bot
-            volume: 10,
-            connection: conn,
-            dispatcher: null,
-            songs: [song]
-        }
-        queue.dispatcher = await queue.connection.play(
-            // Resources para melhorar conexão e aúdio dos videos.
-            await ytdl(song.url, { highWaterMark: 1 << 25, filter: "audioonly", }), {
-            type: "opus", 
-        });
-        queue.dispatcher.on("finish", () => { // Quando finalizado uma música ele inicia a próxima música da queue
-            queue.songs.shift();
-            playSong(bot, message, queue.songs[0]);
-        }) 
-        bot.queues.set(message.member.guild.id, queue);
-        console.log(bot.queues);
-    } else { // É adicionado novas música dentro da queue
-        queue.songs.push(song); // push novas músicas para queue
-        bot.queues.set(message.member.guild.id);
-    }
+  }
+  console.log(message.member.guild);
+  if (!message.member.voice.channel) {
+    return message.reply(
+      "Tu precisa ta em um canal de voz pra tocar a música maluco!"
+    );
+  }
+  if (!queue) {
+    const conn = await message.member.voice.channel.join();
+    queue = {
+      // Caso não haja um fila criada, é criado com essas especificações
+      volume: 10,
+      connection: conn,
+      dispatcher: null,
+      songs: [song],
+    };
+    queue.dispatcher = await queue.connection.play(
+      await ytdl(song.url, { highWaterMark: 1 << 25, filter: "audioonly" }), // Config para melhor o áudio no discord
+      {
+        type: "opus",
+      }
+    );
+    queue.dispatcher.on("finish", () => {
+      // Verifica se a música atual foi finalizada, para tocar a próxima
+      queue.songs.shift(); // Exclui a música atual
+      playSong(bot, message, queue.songs[0]); // Reiniciar o bot com a próxima música.
+    });
+    bot.queues.set(message.member.guild.id, queue);
+  } else {
+    queue.songs.push(song);
+    bot.queues.set(message.member.guild.id);
+  }
 };
 
 module.exports = {
-    name: "p",
-    help: "Reproduz a música desejada pela user!",
-    execute,
-    playSong,
+  name: "play",
+  help: "Toca uma música(Seguida de uma URL ou nome da música)",
+  execute,
+  playSong,
 };

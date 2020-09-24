@@ -1,9 +1,9 @@
 const execute = (bot, message, args) => {
-    return message.replay("Bom dia ai meu parcero!");
-}
+  return message.reply("Fala meu parcero, fé com fé maluco!");
+};
 
 module.exports = {
-    name: "hello",
-    help: "Te dar um oi bem carinhoso...",
-    execute,
+  name: "hello",
+  help: "Dar um hello para o bot.",
+  execute,
 };

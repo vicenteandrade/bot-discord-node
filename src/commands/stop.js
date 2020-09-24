@@ -1,15 +1,17 @@
 const execute = (bot, message, args) => {
-    const queue = bot.queues.get(message.guild.id);
-    if (!queue) {
-        return message.reply("Não tem como parar as músicas, se não tem música meu irmão!");
-    }
-    queue.songs = []; // gera um lista vazia para um nova sessão de músicas
-    bot.queues.set(message.guild.id, queue);
-    queue.dispatcher.end(); // Finaliza a sessão de músicas.
+  const queue = bot.queues.get(message.guild.id);
+  if (!queue) {
+    return message.reply(
+      "Se não tem música como é que vou parar a reprodução maluco!!?"
+    );
+  }
+  queue.songs = []; // Atualiza a nossa lista de música para uma lista vazia
+  bot.queues.set(message.guild.id, queue); // Atualiza a fila de música do bot pela lista vaiza
+  queue.dispatcher.end(); // Finaliza por completo a reprodução de músicas.
 };
 
 module.exports = {
-    name: "stop",
-    help: "Para toda queue de músicas",
-    execute,
-}
+  name: "stop",
+  help: "Para a reprodução de músicas no servidor",
+  execute,
+};

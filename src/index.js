@@ -1,48 +1,37 @@
 const Discord = require("discord.js");
 const dotenv = require("dotenv");
-const fs = require("fs"); // biblioteca para leitura de arquivos
-const path = require("path");
+const fs = require("fs"); // Para leitura dos arquivos em .js
+const path = require("path"); // Encontrar pastas de arquivos
 
-dotenv.config();
+const bot = new Discord.Client(); // Criando o bot do discord
+dotenv.config(); // Usando as config do dotenv
+bot.login(process.env.TOKEN); // Autenticando bot ao discord com o TOKEN
 
-const bot = new Discord.Client(); // Adicionando bot ao client do discord
-bot.commands = new Discord.Collection(); // Adicionando comandos a serem permitidos pelo bot/user
-bot.queues = new Map(); // Criando filas para adição de músicas  
+bot.queues = new Map(); // Criando filas para tocar as músicas
 
-// Pegando arquivos que da pasta /commands, que terminam com .js
+bot.commands = new Discord.Collection(); // Conjunto de comandos a serem entendidos pelo bot
 const commandFiles = fs
-    .readdirSync(path.join(__dirname, "/commands"))
-    .filter(filename => filename.endsWith(".js"))
+  .readdirSync(path.join(__dirname, "commands")) // Leitura do diretório atual {commands}
+  .filter((filename) => filename.endsWith(".js")); // Filtragem de arquivos com final .js
 
-console.log(commandFiles);
-
-// Adiciona na variável filename, a coleção de commands dos arquivos listado na pasta commands
 for (var filename of commandFiles) {
-    const command = require(`./commands/${filename}`);
-    bot.commands.set(command.name, command);
+  const command = require(`./commands/${filename}`); // Requerimento dos arquivos na pasta {commands}
+  bot.commands.set(command.name, command); // Adiciona na collection *commands* os nomes dos arquivos de comandos encontrado no diretório {commands}
 }
 
-console.log(bot.commands);
+//console.log(bot.commands); // Verificar os comandos da collection
 
 bot.on("ready", () => {
-    console.log(`Pai ta on caralho, vem de quatro! ${bot.user.username}`);
-});
+  console.log(`${bot.user.username} ta online nessa poha maluco!`);
+}); // Event para quando o bot tiver online
 
-// Processar comandos enviados no chat do servidor
-// .replay => Responde a mensagem de quem enviou o comando
-// .channel.send => Envia uma mensagem ao canal
-bot.on("message", (message) => {
-    if (!message.content.startsWith(process.env.PREFIX) || message.author.bot)
-        return;
-    // Pega os argumentos, no caso os comandos
-    const args = message.content.slice(process.env.PREFIX.length).split(" ");
-    const command = args.shift();
-    // verificar se existe esse comando na lista de comandos!
-    try {
-        bot.commands.get(command).execute(bot, message, args);
-    } catch (err) {
-        return message.reply("Que poha de comando é esse maluco?");
-    }  
-});
-
-bot.login(process.env.TOKEN);
+bot.on("message", (msg) => {
+  if (!msg.content.startsWith(process.env.PREFIX) || msg.author.bot) return; // Verificar se a message não começa com o prefix ou se é um bot
+  const args = msg.content.slice(process.env.PREFIX.length).split(" "); // Retira o prefix e quebra os argumentos
+  const command = args.shift(); // Retirar o primeiro elemento dos args e adiciona a var[command]
+  try {
+    bot.commands.get(command).execute(bot, msg, args);
+  } catch (e) {
+    return msg.reply("Que poha de comando é esse mermão?");
+  }
+}); // Event para quando o bot receber uma messagem, ele efetuar alguma função
